@@ -29,6 +29,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+# ------------ OTP-----------
+MAX_OTP_TRY = 3
 
 # Application definition
 

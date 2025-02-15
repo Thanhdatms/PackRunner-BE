@@ -6,9 +6,12 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
+from django.utils.timezone import now, timedelta
 from .models import User
+from django.conf import settings
 from .serializers import UserSerializer, MyTokenObtainPairSerializer
 from .permissions import *
+from .otpverify import sendSmSOTP
 
 # Register API
 class RegisterView(APIView):
@@ -16,8 +19,6 @@ class RegisterView(APIView):
         serializer = UserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        print(serializer)
-        print(user.is_active)
         group_name = request.data.get("group", "User")  
         group, created = Group.objects.get_or_create(name=group_name)
         user.groups.add(group)
@@ -42,16 +43,65 @@ class LoginView(APIView):
         
         if not user.check_password(password):
             raise AuthenticationFailed("Incorrect password!")
+        # Generate OTP
+        user.generate_otp()
+        phone_number = "84" + user.phone_number[1:]
+        otp = user.otp
 
-        refresh = RefreshToken.for_user(user)
-        token_data = MyTokenObtainPairSerializer.get_token(user)
+        sendSmSOTP(phone_number=phone_number, otp=otp)
 
         return Response({
-            "refresh": str(refresh),
-            "access": str(refresh.access_token),
-            "groups": token_data["groups"],
-            "permissions": token_data["permissions"],
+            "message": "OTP sent. Please verify to complete login."
         })
+
+class VerifyOTPView(APIView):
+    def patch(self, request):
+        phone_number = request.data.get('phone_number')
+        otp = request.data.get('otp')
+
+        try:
+            user = User.objects.get(phone_number=phone_number)
+        except User.DoesNotExist:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        if user.otp_max_out and now() < user.otp_max_out:
+            return Response({"error": "Too many failed attempts. Try again later."}, status=status.HTTP_403_FORBIDDEN)
+        
+        if now() > user.otp_expiry:
+            return Response({"error": "OTP has expired"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Check OTP validity
+        if user.otp != otp:
+            user.max_otp_try -= 1
+
+            if user.max_otp_try < 1:
+                # Lock user for 1 hour if max attempts are exceeded
+                user.otp_max_out = now() + timedelta(hours=1)
+            user.save()
+            return Response({"error": "Incorrect OTP. Account is locked for 1 hour after max attempts."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if user.otp == otp:
+            user.is_active = True
+            user.otp = None
+            user.otp_max_out = None
+            user.max_otp_try = settings.MAX_OTP_TRY  # Reset max attempts
+            user.otp_expiry = None
+            user.otp_require = False
+
+            user.save()
+
+            refresh = RefreshToken.for_user(user)
+            token_data = MyTokenObtainPairSerializer.get_token(user)
+
+            return Response({
+                "message": "OTP verified successfully",
+                "data":{
+                    "refresh": str(refresh),
+                    "access": str(refresh.access_token),
+                    "groups": token_data["groups"],
+                    "permissions": token_data["permissions"]
+                }
+            }, status=status.HTTP_200_OK)
 
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
@@ -67,6 +117,10 @@ class LogoutView(APIView):
 
             token = RefreshToken(refresh_token)
             token.blacklist()
+
+            user = request.user
+            user.otp_require = True
+            user.save(update_fields=["otp_require"])
 
             return Response({'message': 'Successfully logged out.'}, status=200)
         except Exception as e:
@@ -104,4 +158,4 @@ class UserProfileView(APIView):
             "data": serializer.data
         })
 
-    
+

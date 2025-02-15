@@ -4,10 +4,10 @@ from .models import User
 
 # Serializer User
 class UserSerializer(serializers.ModelSerializer):
-    is_active = serializers.BooleanField(required=False, default=True)
+    
     class Meta:
         model = User
-        fields = ['id', 'name', 'email', 'password', 'phone_number', 'is_active', 'is_banned', 'date_of_birth']
+        fields = ['id', 'name', 'email', 'password', 'phone_number', 'is_active', 'is_banned', 'date_of_birth', 'otp_require']
         extra_kwargs = {
             'password': {'write_only': True}  # Prevent password not show in response
         }
@@ -47,3 +47,4 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token["permissions"] = permissions
 
         return token
+

@@ -17,7 +17,7 @@ Including another URLconf
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import RegisterView
-from .views import LoginView, LogoutView, UserListView, UserDetailView, UserProfileView
+from .views import LoginView, LogoutView, UserListView, UserDetailView, UserProfileView, VerifyOTPView
 
 urlpatterns = [
     path('register/', RegisterView.as_view()),
@@ -29,5 +29,8 @@ urlpatterns = [
     path('users/<int:id>/', UserDetailView.as_view()),
     
     # user profile
-    path('profile/', UserProfileView.as_view())
+    path('profile/', UserProfileView.as_view()),
+
+    # verify OTP
+    path('verify-otp/', VerifyOTPView.as_view())
 ]
