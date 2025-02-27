@@ -7,9 +7,9 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
 from django.utils.timezone import now, timedelta
-from .models import User
+from .models import User, Address
 from django.conf import settings
-from .serializers import UserSerializer, MyTokenObtainPairSerializer
+from .serializers import UserSerializer, MyTokenObtainPairSerializer, AddressSerializer
 from .permissions import *
 from .otpverify import sendSmSOTP
 
@@ -158,4 +158,40 @@ class UserProfileView(APIView):
             "data": serializer.data
         })
 
+class AddressView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
+    def post(self, request):
+        serializer = AddressSerializer(data = request.data, context = {'request': request})
+
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(user = request.user)
+            return Response({
+                "message": "Successfully",
+                "data": serializer.data
+            })
+
+    def get(self, request):
+        user = request.user
+
+        addresses = Address.objects.filter(user = user)
+        serializer = AddressSerializer(addresses, many = True)
+
+        return Response({
+                "message": "Successfully",
+                "data": serializer.data
+            })
+
+class AddressDetailView(APIView):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+
+    def delete(self, request, pk):
+        user = request.user 
+        address = Address.objects.filter(user=user, id=pk).first()
+        
+        if address:
+            address.delete()
+            return Response({"message": "Delete Successfully"}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({"error": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
+        

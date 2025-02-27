@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import User
+from .models import User, Address
 
 # Serializer User
 class UserSerializer(serializers.ModelSerializer):
@@ -47,4 +47,25 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token["permissions"] = permissions
 
         return token
+
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['id', 'user', 'address_line', 'city', 'district', 'street_name', 'latitude', 'longitude', 'is_default']
+        extra_kwargs = {
+            'user': {'read_only': True}
+        }
+
+    def create(self, validated_data):  
+        request = self.context.get('request')
+
+        if request and hasattr(request, 'user'):
+            user = request.user
+            validated_data['user'] = user
+
+            if validated_data.get('is_default', True):
+                Address.objects.filter(user=user, is_default=True).update(is_default=False)
+
+        return super().create(validated_data)
+
 
