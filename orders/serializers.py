@@ -1,17 +1,26 @@
 from rest_framework import serializers
-from .models import Payment, Destination, Shipment, Order
+from .models import Receiver, Order
 
 # Destination serializer
 
-class DestinationSerializer(serializers.ModelSerializer):
+# class ReceiverSerializer(serializers.ModelSerializer):
     
-    class Meta:
-        model = Destination
-        fields = ['id', 'address_line', 'city', 'district', 'street_name']
+#     class Meta:
+#         model = Receiver
+#         fields = []
 
+# class ShipmentSerializer(serializers.ModelSerializer):
+#     pass
 
 class OrderSerializer(serializers.ModelSerializer):
-    pass
+    class Meta:
+        model = Order
+        fields = '__all__'
+        managed = True
 
-class ShipmentSerializer(serializers.ModelSerializer):
-    pass
+    def validate_total_price(self, attrs):
+        if attrs < 0:
+            raise serializers.ValidationError('Please check the total price!')
+        return attrs
+    
+    

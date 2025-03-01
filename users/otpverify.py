@@ -3,7 +3,7 @@ import json
 
 def sendSmSOTP(phone_number, otp):
     try:
-        conn = http.client.HTTPSConnection("api.infobip.com")
+        conn = http.client.HTTPSConnection("nmvrjy.api.infobip.com")
         payload = json.dumps({
             "messages": [
                 {
