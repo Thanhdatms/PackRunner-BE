@@ -24,3 +24,10 @@ class OrderSerializer(serializers.ModelSerializer):
         return attrs
     
     
+class ReceiverSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Receiver
+        fields = '__all__'
+        managed = True
+
+    

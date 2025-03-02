@@ -16,7 +16,8 @@ Including another URLconf
 """
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import OrderView
+from .views import OrderView, ReceiverView
 urlpatterns = [
-    path('', OrderView.as_view())
+    path('', OrderView.as_view()),
+    path('receiver/', ReceiverView.as_view())
 ]
