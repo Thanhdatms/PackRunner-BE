@@ -2,24 +2,10 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import OrderSerializer
+from .serializers import OrderSerializer, ReceiverSerializer
 from .models import Order
 from utils.response import success_response, fail_response
 # Create your views here.
-
-# class ReceiverView(APIView):
-#     permission_classes = [IsAuthenticated]
-    
-#     def post(self, request):
-#         serializer = ReceiverSerializer(data = request.data)
-#         serializer.is_valid(raise_exception=True)
-
-#         serializer.save()
-
-#         return Response({
-#             "message": "Successfully",
-#             "data": serializer.data
-#         })
 
 class OrderView(APIView):
     permission_classes=[IsAuthenticated]
@@ -46,3 +32,15 @@ class OrderView(APIView):
         except Exception as err:
             return fail_response(error=err, status_code=500)
         
+class ReceiverView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        serializer = ReceiverSerializer(data = request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response({
+            "message": "Successfully",
+            "data": serializer.data
+        })
