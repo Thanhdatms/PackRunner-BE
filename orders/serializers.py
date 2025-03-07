@@ -1,16 +1,5 @@
 from rest_framework import serializers
-from .models import Receiver, Order
-
-# Destination serializer
-
-# class ReceiverSerializer(serializers.ModelSerializer):
-    
-#     class Meta:
-#         model = Receiver
-#         fields = []
-
-# class ShipmentSerializer(serializers.ModelSerializer):
-#     pass
+from .models import Receiver, Order, Shipment
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,4 +19,19 @@ class ReceiverSerializer(serializers.ModelSerializer):
         fields = '__all__'
         managed = True
 
-    
+class ShipmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shipment
+        fields = '__all__'
+
+    def validate_deliverer(self, value):
+        ALLOWED_GROUPS = ['Employee']
+        
+        if not value.is_active:
+            raise serializers.ValidationError("User is not active.")
+        
+        if not value.groups.filter(name__in=ALLOWED_GROUPS).exists():
+            raise serializers.ValidationError("User is not authorized as a deliverer.")
+        
+        return value
+
