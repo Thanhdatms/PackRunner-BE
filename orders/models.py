@@ -32,7 +32,7 @@ class Shipment(models.Model):
         M = 'Medium'
         L = 'Large'
         XL = 'X-large'
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='shipments')
     shipment_code = models.CharField(max_length=50, unique=True)  # Ensure it is unique
     deliverer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='deliveries', null=True, blank=True)
     shipment_type = models.CharField(max_length=20, choices=ShipmentType.choices)  # Increased max_length

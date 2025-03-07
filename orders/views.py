@@ -12,14 +12,15 @@ class OrderView(APIView):
     permission_classes=[IsAuthenticated]
 
     def post(self, request):
-        serializer = OrderSerializer(data = request.data)
-        serializer.is_valid()
-        serializer.save()
-        
-        return Response({
-            'message': 'Successfully',
-            'data': serializer.data
-        })
+        try:
+            serializer = OrderSerializer(data = request.data, context={'request':request})
+
+            serializer.is_valid(raise_exception=True)  # This raises an exception if invalid
+            serializer.save()
+            return success_response(serializer.data)
+            
+        except Exception as err:
+            return fail_response(error=err)
     
     def get(self, request):
         try:
@@ -33,16 +34,17 @@ class OrderView(APIView):
         except Exception as err:
             return fail_response(error=err, status_code=500)
         
-class ShipmentView(APIView):
-    permission_classes = [IsAuthenticated]
+# class ShipmentView(APIView):
+#     permission_classes = [IsAuthenticated]
 
-    def post(self, request):
-        try:
-            serializer = ShipmentSerializer(data = request.data)
-            serializer.is_valid(raise_exception=True)
-            serializer.save()
+#     def post(self, request):
+#         try:
+#             serializer = ShipmentSerializer(data = request.data, context={'request':request})
 
-            return success_response(serializer.data)
-        except Exception as err:
-            return fail_response(error=err)
+#             if serializer.is_valid(raise_exception=True):
+#                 serializer.save(sender = request.user)
+#                 return success_response(serializer.data)
+            
+#         except Exception as err:
+#             return fail_response(error=err)
         
