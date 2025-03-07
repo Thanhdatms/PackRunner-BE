@@ -11,18 +11,15 @@ class Order(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     total_price = models.DecimalField(max_digits=10, decimal_places=2) 
     order_status = models.CharField(max_length=15, choices=OrderStatus.choices)
-    created = models.DateTimeField(default=now, blank=True, null=True)
 
-class Receiver(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, null=False, blank=False)
-
+    receiver_name = models.CharField(max_length=100, null=False, blank=False)
     address = models.CharField(max_length=100, null=False, blank=False)
     province = models.CharField(max_length=100, null=False, blank=False)
     district = models.CharField(max_length=100, null=False, blank=False)
     ward = models.CharField(max_length=100, null=False, blank=False)
     latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)  
-    longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)  
+    longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+    created = models.DateTimeField(default=now, blank=True, null=True)
 
 class Shipment(models.Model):
     class ShipmentType(models.TextChoices):
