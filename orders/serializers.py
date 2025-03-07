@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Receiver, Order, Shipment
+from .models import Order, Shipment
 
 class OrderSerializer(serializers.ModelSerializer):
     class Meta:
@@ -12,12 +12,6 @@ class OrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Please check the total price!')
         return attrs
     
-    
-class ReceiverSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Receiver
-        fields = '__all__'
-        managed = True
 
 class ShipmentSerializer(serializers.ModelSerializer):
     class Meta:
