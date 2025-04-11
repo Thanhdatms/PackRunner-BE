@@ -30,14 +30,12 @@ class OrderSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Please check the total price!')
         return value
     
-    def create(self, validated_data):
+    def create(self, validated_data): 
         shipment_data = validated_data.pop('shipment', None)
         request = self.context.get('request')
         order = Order.objects.create(sender=request.user, **validated_data)
         shipment_code = generate_shipment_code(f"SHIP-{order.id}")
-        print(shipment_data)
+
         if shipment_data:
             Shipment.objects.create(order=order, **shipment_data, shipment_code=shipment_code)
-        return order
-    
-
+        return order    
