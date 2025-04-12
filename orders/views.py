@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer
+from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer, PaymentSerializer
 from .models import Order, Shipment
 from utils.response import success_response, fail_response
 from users.permissions import IsOwnerOrReadOnly
@@ -21,18 +21,19 @@ class OrderView(APIView):
             
         except Exception as err:
             return fail_response(error=err)
-    
+        
+class OrderListView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
         try:
             user = request.user
-            
-            orders = Order.objects.filter(sender = user)
+            orders = Order.objects.filter(sender=user).prefetch_related('payments')
             serializer = OrderSerializer(orders, many=True)
-
             return success_response(serializer.data)
 
         except Exception as err:
-            return fail_response(error=err, status_code=500)
+            return fail_response(error=str(err), status_code=500)
 
 class OrderStatusUpdateView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
@@ -51,17 +52,19 @@ class OrderStatusUpdateView(APIView):
         except Exception as err:
             return fail_response(error=err)
         
-# class ShipmentView(APIView):
-#     permission_classes = [IsAuthenticated]
+class PaymentView(APIView):
+    permission_classes = [IsAuthenticated]
 
-#     def post(self, request):
-#         try:
-#             serializer = ShipmentSerializer(data = request.data, context={'request':request})
+    def post(self, request):
+        try:
+            serializer = PaymentSerializer(data=request.data, context={'request': request})
 
-#             if serializer.is_valid(raise_exception=True):
-#                 serializer.save(sender = request.user)
-#                 return success_response(serializer.data)
-            
-#         except Exception as err:
-#             return fail_response(error=err)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return success_response(serializer.data)
+
+        except Exception as err:
+            return fail_response(error=err)
+         
+    
         
