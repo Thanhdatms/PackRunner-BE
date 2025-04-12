@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Order, Shipment
+from .models import Order, Shipment, Payments
 from utils.validate import generate_shipment_code
 
 class ShipmentSerializer(serializers.ModelSerializer):
@@ -7,23 +7,37 @@ class ShipmentSerializer(serializers.ModelSerializer):
         model = Shipment
         fields = ['shipment_type', 'size', 'weight', 'note']
 
-    # def validate_deliverer(self, value):
-    #     ALLOWED_GROUPS = ['Employee']
-    #     if not value.is_active:
-    #         raise serializers.ValidationError("User is not active.")
-        
-    #     if not value.groups.filter(name__in=ALLOWED_GROUPS).exists():
-    #         raise serializers.ValidationError("User is not authorized as a deliverer.")  
-    #     return value
+class PaymentSerializer(serializers.ModelSerializer):
+    payment_status = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = Payments
+        fields = [ 'amount', 'payment_method','payment_status', 'order']
+
+    def validate_amount(self, value):
+        if value < 0:
+            raise serializers.ValidationError('Please check the amount!')
+        return value
+    
+    def create(self, validated_data): 
+        request = self.context.get('request')
+        payment = Payments.objects.create(**validated_data)
+        payment.payment_status = 'Pending'
+        payment.save()
+        return payment
     
 class OrderSerializer(serializers.ModelSerializer):
-    shipment = ShipmentSerializer(write_only=True)  # Change to singular
+    payments = PaymentSerializer(many=True, read_only=True)  # Use the PaymentSerializer here
 
     class Meta:
         model = Order
-        fields = '__all__'
+        fields = [
+            'id', 'sender', 'total_price', 'order_status',
+            'receiver_name', 'address', 'province', 'district', 'ward',
+            'latitude', 'longitude', 'created',
+            'payments'
+        ]
         managed = True
-        read_only_fields = ['order_status', 'created', 'sender']
 
     def validate_total_price(self, value):
         if value < 0:
