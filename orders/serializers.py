@@ -34,8 +34,14 @@ class OrderSerializer(serializers.ModelSerializer):
         shipment_data = validated_data.pop('shipment', None)
         request = self.context.get('request')
         order = Order.objects.create(sender=request.user, **validated_data)
+        order.order_status = 'Ordered'
         shipment_code = generate_shipment_code(f"SHIP-{order.id}")
 
         if shipment_data:
             Shipment.objects.create(order=order, **shipment_data, shipment_code=shipment_code)
         return order    
+    
+class OrderStatusUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Order
+        fields = ['order_status']   
