@@ -28,11 +28,10 @@ class PaymentSerializer(serializers.ModelSerializer):
     
 class OrderSerializer(serializers.ModelSerializer):
     payments = PaymentSerializer(many=True, read_only=True)  # Use the PaymentSerializer here
-
     class Meta:
         model = Order
         fields = [
-            'id', 'sender', 'total_price', 'order_status',
+            'id', 'total_price', 'order_status',
             'receiver_name', 'address', 'province', 'district', 'ward',
             'latitude', 'longitude', 'created',
             'payments'
