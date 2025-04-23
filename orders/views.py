@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer, PaymentSerializer
+from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer, PaymentSerializer, OrderDetailSerializer
 from .models import Order, Shipment
 from utils.response import success_response, fail_response
 from users.permissions import IsOwnerOrReadOnly
@@ -22,13 +22,24 @@ class OrderView(APIView):
         except Exception as err:
             return fail_response(error=err)
         
+    def get(self, request, pk):
+        try:
+            order = Order.objects.get(pk=pk, sender=request.user)
+            serializer = OrderDetailSerializer(order)
+            return success_response(serializer.data)
+
+        except Order.DoesNotExist:
+            return fail_response(error="Order not found", status_code=404)
+        except Exception as err:
+            return fail_response(error=str(err), status_code=500)
+        
 class OrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
             user = request.user
-            orders = Order.objects.filter(sender=user).prefetch_related('payments')
+            orders = Order.objects.filter(sender=user).prefetch_related('payments', 'shipments')
             serializer = OrderSerializer(orders, many=True)
             return success_response(serializer.data)
 

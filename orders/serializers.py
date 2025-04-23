@@ -13,6 +13,9 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payments
         fields = [ 'amount', 'payment_method','payment_status', 'order']
+        extra_kwargs = {
+            'order': {'required': False}
+        }
 
     def validate_amount(self, value):
         if value < 0:
@@ -27,14 +30,15 @@ class PaymentSerializer(serializers.ModelSerializer):
         return payment
     
 class OrderSerializer(serializers.ModelSerializer):
-    payments = PaymentSerializer(many=True, read_only=True)  # Use the PaymentSerializer here
+    payments = PaymentSerializer(many=True)
+    shipments = ShipmentSerializer(many=True)
     class Meta:
         model = Order
         fields = [
             'id', 'total_price', 'order_status',
             'receiver_name', 'address', 'province', 'district', 'ward',
             'latitude', 'longitude', 'created',
-            'payments'
+            'payments', 'shipments'
         ]
         managed = True
 
@@ -42,19 +46,40 @@ class OrderSerializer(serializers.ModelSerializer):
         if value < 0:
             raise serializers.ValidationError('Please check the total price!')
         return value
-    
-    def create(self, validated_data): 
-        shipment_data = validated_data.pop('shipment', None)
+
+    def create(self, validated_data):
+        shipments_data = validated_data.pop('shipments', []) 
+        payments_data = validated_data.pop('payments', [])
         request = self.context.get('request')
         order = Order.objects.create(sender=request.user, **validated_data)
         order.order_status = 'Ordered'
         shipment_code = generate_shipment_code(f"SHIP-{order.id}")
 
-        if shipment_data:
-            Shipment.objects.create(order=order, **shipment_data, shipment_code=shipment_code)
-        return order    
+        if shipments_data:
+            Shipment.objects.create(order=order, shipment_code=shipment_code, **shipments_data[0])
+        if payments_data:
+            Payments.objects.create(order=order, payment_status = Payments.PaymentStatus.PENDING,  **payments_data[0])
+        return order
     
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ['order_status']   
+
+class OrderDetailSerializer(serializers.ModelSerializer):
+    shipments = ShipmentSerializer(many=True, read_only=True)
+    payments = PaymentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = [
+            'id', 'total_price', 'order_status',
+            'receiver_name', 'address', 'province', 'district', 'ward',
+            'latitude', 'longitude', 'created',
+            'shipments', 'payments'  # Cập nhật tên trường
+        ]
+
+    def validate_total_price(self, value):
+        if value < 0:
+            raise serializers.ValidationError('Please check the total price!')
+        return value
