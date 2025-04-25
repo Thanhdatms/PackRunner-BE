@@ -6,7 +6,16 @@ from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateS
 from .models import Order, Shipment
 from utils.response import success_response, fail_response
 from users.permissions import IsOwnerOrReadOnly
+
+from drf_spectacular.utils import extend_schema
+
 # Create your views here.
+
+@extend_schema(
+    request=OrderSerializer,
+    responses=OrderSerializer,
+    tags=['Order']
+)
 
 class OrderView(APIView):
     permission_classes=[IsAuthenticated]
@@ -32,7 +41,12 @@ class OrderView(APIView):
             return fail_response(error="Order not found", status_code=404)
         except Exception as err:
             return fail_response(error=str(err), status_code=500)
-        
+
+@extend_schema(
+    request=ShipmentSerializer,
+    responses=ShipmentSerializer,
+    tags=['Order']
+)   
 class OrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -46,6 +60,11 @@ class OrderListView(APIView):
         except Exception as err:
             return fail_response(error=str(err), status_code=500)
 
+@extend_schema(
+    request=OrderStatusUpdateSerializer,
+    responses=OrderStatusUpdateSerializer,
+    tags=['Order']
+)
 class OrderStatusUpdateView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -63,6 +82,11 @@ class OrderStatusUpdateView(APIView):
         except Exception as err:
             return fail_response(error=err)
         
+@extend_schema(
+    request=PaymentSerializer,
+    responses=PaymentSerializer,
+    tags=['Payment']
+)    
 class PaymentView(APIView):
     permission_classes = [IsAuthenticated]
 

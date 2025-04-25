@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'users',
     'orders',
     'location',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -141,7 +142,8 @@ AUTH_USER_MODEL = 'users.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -153,4 +155,14 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PackRunner API Documentation',
+    'DESCRIPTION': ' API documentation for PackRunner project',
+    'VERSION': '1.0.0',
+    'CONTACT_URL': 'dangthanhdatuit@gmail.com',
+    'SERVE_INCLUDE_SCHEMA': False,
+    "SCHEMA_PATH_PREFIX_TRIM": None,
+    # OTHER SETTINGS
 }
