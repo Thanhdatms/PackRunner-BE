@@ -12,8 +12,15 @@ from django.conf import settings
 from .serializers import UserSerializer, MyTokenObtainPairSerializer, AddressSerializer
 from .permissions import *
 from .otpverify import sendSmSOTP
-
+from drf_spectacular.utils import extend_schema
 # Register API
+
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['Auth']
+)
+
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -29,6 +36,11 @@ class RegisterView(APIView):
         })
 
 # Login API
+@extend_schema( 
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['Auth']
+)
 class LoginView(APIView):
     def post(self, request):
         phone_number = request.data.get("phone_number")
@@ -54,6 +66,11 @@ class LoginView(APIView):
             "message": "OTP sent. Please verify to complete login."
         })
 
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['Auth']
+)
 class VerifyOTPView(APIView):
     def patch(self, request):
         phone_number = request.data.get('phone_number')
@@ -103,6 +120,11 @@ class VerifyOTPView(APIView):
                 }
             }, status=status.HTTP_200_OK)
 
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['Auth']
+)
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -125,19 +147,34 @@ class LogoutView(APIView):
             return Response({'message': 'Successfully logged out.'}, status=200)
         except Exception as e:
             return Response({'detail': str(e)}, status=400)
-        
+
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['User']
+)    
 class UserListView(APIView):
     def get(self, request):
         users = User.objects.all()
         serializer = UserSerializer(users, many = True)
         return Response({"message": "Successfully", "data": serializer.data })
-        
+
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['User']
+)       
 class UserDetailView(APIView):
     def get(self, request, id):
         user = get_object_or_404(User, id=id)
         serializer = UserSerializer(user)
         return Response({"message": "Successfully", "data": serializer.data}, status=status.HTTP_200_OK)
-    
+
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['User']
+)   
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -158,6 +195,11 @@ class UserProfileView(APIView):
             "data": serializer.data
         })
 
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['Address']
+)
 class AddressView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -182,6 +224,11 @@ class AddressView(APIView):
                 "data": serializer.data
             })
 
+@extend_schema(
+    request=UserSerializer,
+    responses=UserSerializer,
+    tags=['Address']
+)
 class AddressDetailView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
