@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer, PaymentSerializer, OrderDetailSerializer
+from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer, PaymentSerializer, OrderDetailSerializer, OrderStatisticsSerializer
 from .models import Order, Shipment
 from utils.response import success_response, fail_response
 from users.permissions import IsOwnerOrReadOnly
@@ -16,7 +16,6 @@ from drf_spectacular.utils import extend_schema
     responses=OrderSerializer,
     tags=['Order']
 )
-
 class OrderView(APIView):
     permission_classes=[IsAuthenticated]
 
@@ -86,7 +85,7 @@ class OrderStatusUpdateView(APIView):
     request=PaymentSerializer,
     responses=PaymentSerializer,
     tags=['Payment']
-)    
+)   
 class PaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -101,5 +100,34 @@ class PaymentView(APIView):
         except Exception as err:
             return fail_response(error=err)
          
-    
+@extend_schema(
+    request=None,
+    responses=OrderStatisticsSerializer,
+    tags=['OrderStatistics']
+)
+class OrderStatisticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user = request.user
+            orders = Order.objects.filter(sender=user)
+
+            total_orders = orders.count()
+            total_amount = sum(order.total_price for order in orders)
+
+            ordered_orders = orders.filter(order_status='Ordered').count()
+            in_transit_orders = orders.filter(order_status='In Transit').count()
+            delivered_orders = orders.filter(order_status='Delivered').count()
+
+            return success_response({
+                'total_orders': total_orders,
+                'total_amount': total_amount,
+                'ordered_orders': ordered_orders,
+                'in_transit_orders': in_transit_orders,
+                'delivered_orders': delivered_orders
+            })
+
+        except Exception as err:
+            return fail_response(error=str(err), status_code=500)
         

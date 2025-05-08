@@ -76,10 +76,17 @@ class OrderDetailSerializer(serializers.ModelSerializer):
             'id', 'total_price', 'order_status',
             'receiver_name', 'address', 'province', 'district', 'ward',
             'latitude', 'longitude', 'created',
-            'shipments', 'payments'  # Cập nhật tên trường
+            'shipments', 'payments'  # Updated field names
         ]
 
     def validate_total_price(self, value):
         if value < 0:
             raise serializers.ValidationError('Please check the total price!')
         return value
+    
+class OrderStatisticsSerializer(serializers.Serializer):
+    total_orders = serializers.IntegerField()
+    total_amount = serializers.FloatField()
+    ordered_orders = serializers.IntegerField()
+    in_transit_orders = serializers.IntegerField()
+    delivered_orders = serializers.IntegerField()
