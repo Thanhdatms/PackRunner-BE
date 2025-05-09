@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
@@ -13,14 +13,14 @@ from .serializers import UserSerializer, MyTokenObtainPairSerializer, AddressSer
 from .permissions import *
 from .otpverify import sendSmSOTP
 from drf_spectacular.utils import extend_schema
+from api_doc.schemas.auth_schemas import login_schema, register_schema, verify_opt_schema, logout_schema
+from utils.response import success_response, fail_response
+from rest_framework.permissions import AllowAny
+
 # Register API
 
-@extend_schema(
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['Auth']
-)
-
+@extend_schema(tags=['Auth'])
+@register_schema
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -36,41 +36,39 @@ class RegisterView(APIView):
         })
 
 # Login API
-@extend_schema( 
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['Auth']
-)
+@extend_schema(tags=['Auth'])
+@login_schema
 class LoginView(APIView):
+    permission_classes = [AllowAny]
     def post(self, request):
         phone_number = request.data.get("phone_number")
         password = request.data.get("password")
 
         if not phone_number or not password:
-            raise AuthenticationFailed("Phone number and password are required!")
+            raise fail_response("Phone number and password are required!")
 
         user = User.objects.filter(phone_number=phone_number).first()
         if user is None:
-            raise AuthenticationFailed("User not found!")
+            raise fail_response("User not found!")
         
         if not user.check_password(password):
-            raise AuthenticationFailed("Incorrect password!")
+            raise fail_response("Incorrect password!")
         # Generate OTP
         user.generate_otp()
         phone_number = "84" + user.phone_number[1:]
         otp = user.otp
 
-        sendSmSOTP(phone_number=phone_number, otp=otp)
+        # try:
+        #     sendSmSOTP(phone_number=phone_number, otp=otp)
+        # except Exception as e:
+        #     return fail_response("Failed to send OTP. Please try again later.", status_code=500)
 
-        return Response({
-            "message": "OTP sent. Please verify to complete login."
+        return success_response(message="OTP sent. Please verify to complete login.", data={
+            "phone_number": phone_number, 
         })
 
-@extend_schema(
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['Auth']
-)
+@extend_schema(tags=['Auth'])
+@verify_opt_schema
 class VerifyOTPView(APIView):
     def patch(self, request):
         phone_number = request.data.get('phone_number')
@@ -120,31 +118,46 @@ class VerifyOTPView(APIView):
                 }
             }, status=status.HTTP_200_OK)
 
-@extend_schema(
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['Auth']
-)
+@extend_schema(tags=['Auth'])
+@logout_schema
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
         refresh_token = request.data.get('refresh')
+        access_token = request.META.get('HTTP_AUTHORIZATION')
 
         if not refresh_token:
             return Response({'message': 'Refresh token is required'}, status=400)
+
         try:
+            # Strip prefix from refresh token
             if refresh_token.startswith("Bearer "):
                 refresh_token = refresh_token[7:]
 
+            # Blacklist refresh token
             token = RefreshToken(refresh_token)
             token.blacklist()
 
+            # Handle access token (optional)
+            if access_token and access_token.startswith("Bearer "):
+                raw_access = access_token[7:]
+                try:
+                    AccessToken(raw_access).blacklist()  # Will raise if unsupported
+                except AttributeError:
+                    # AccessToken does not support blacklisting
+                    pass
+
+
+            # Update user
             user = request.user
             user.otp_require = True
             user.save(update_fields=["otp_require"])
 
             return Response({'message': 'Successfully logged out.'}, status=200)
+
+        except Exception as e:
+            return Response({'detail': 'Invalid or expired token.'}, status=400)
         except Exception as e:
             return Response({'detail': str(e)}, status=400)
 
