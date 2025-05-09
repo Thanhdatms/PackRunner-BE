@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-dqq3*(=h1a42xkdj%*8&#@m_=#)gx))jagx0a@)x#==o5e*a!n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
 
 # ------------ OTP-----------
 MAX_OTP_TRY = 3
@@ -144,6 +144,7 @@ REST_FRAMEWORK = {
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
 }
 
 SIMPLE_JWT = {

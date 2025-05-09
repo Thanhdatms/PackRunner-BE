@@ -16,11 +16,11 @@ Including another URLconf
 """
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import OrderView, OrderStatusUpdateView, PaymentView, OrderListView, OrderStatisticsView
+from .views import OrderCreateView, OrderDetailView, OrderStatusUpdateView, PaymentView, OrderListView, OrderStatisticsView
 urlpatterns = [
-    # path('', OrderView.as_view()),
-    path('<int:pk>/', OrderView.as_view()),
-    path('orderlist/',OrderListView.as_view()),
+    path('', OrderCreateView.as_view(), name='order-create'),
+    path('list/', OrderListView.as_view(), name='order-list'),
+    path('<int:pk>/', OrderDetailView.as_view(), name='order-detail'),
     path('<int:pk>/status/', OrderStatusUpdateView.as_view()),
     path('payment/', PaymentView.as_view()),
     path('statistics/',OrderStatisticsView.as_view()),

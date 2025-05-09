@@ -2,63 +2,63 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
+
 from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateSerializer, PaymentSerializer, OrderDetailSerializer, OrderStatisticsSerializer
 from .models import Order, Shipment
 from utils.response import success_response, fail_response
 from users.permissions import IsOwnerOrReadOnly
 
 from drf_spectacular.utils import extend_schema
-
+from api_doc.schemas.order_schemas import order_create_schema, order_detail_schema, order_list_schema
 # Create your views here.
 
-@extend_schema(
-    request=OrderSerializer,
-    responses=OrderSerializer,
-    tags=['Order']
-)
-class OrderView(APIView):
-    permission_classes=[IsAuthenticated]
+@extend_schema(tags=['Order'])
+@order_create_schema
+class OrderCreateView(APIView):
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
-            serializer = OrderSerializer(data = request.data, context={'request':request})
-
-            serializer.is_valid(raise_exception=True)  # This raises an exception if invalid
+            serializer = OrderSerializer(data=request.data, context={'request': request})
+            serializer.is_valid(raise_exception=True)
             serializer.save()
-            return success_response(serializer.data)
-            
+            return success_response(serializer.data, status_code=201)
         except Exception as err:
-            return fail_response(error=err)
-        
+            return fail_response(error=str(err))
+
+@extend_schema(tags=['Order'])
+@order_detail_schema
+class OrderDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request, pk):
         try:
             order = Order.objects.get(pk=pk, sender=request.user)
             serializer = OrderDetailSerializer(order)
             return success_response(serializer.data)
-
         except Order.DoesNotExist:
             return fail_response(error="Order not found", status_code=404)
         except Exception as err:
             return fail_response(error=str(err), status_code=500)
-
+     
 @extend_schema(
     request=ShipmentSerializer,
     responses=ShipmentSerializer,
     tags=['Order']
-)   
+)
+@order_list_schema
 class OrderListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
-            user = request.user
-            orders = Order.objects.filter(sender=user).prefetch_related('payments', 'shipments')
+            orders = Order.objects.filter(sender=request.user).prefetch_related('payments', 'shipments')
             serializer = OrderSerializer(orders, many=True)
             return success_response(serializer.data)
-
         except Exception as err:
             return fail_response(error=str(err), status_code=500)
-
+        
 @extend_schema(
     request=OrderStatusUpdateSerializer,
     responses=OrderStatusUpdateSerializer,
@@ -130,4 +130,3 @@ class OrderStatisticsView(APIView):
 
         except Exception as err:
             return fail_response(error=str(err), status_code=500)
-        
