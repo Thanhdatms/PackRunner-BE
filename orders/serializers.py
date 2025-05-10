@@ -61,6 +61,7 @@ class OrderSerializer(serializers.ModelSerializer):
         order = Order.objects.create(
             total_price =self.calculate_total_price(shipments_data),
             sender=request.user, 
+            order_status = Order.OrderStatus.ORDERED,
             **validated_data
             )
         order.order_status = 'Ordered'
