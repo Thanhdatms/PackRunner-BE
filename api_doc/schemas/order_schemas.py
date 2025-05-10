@@ -17,9 +17,6 @@ order_create_schema = extend_schema_view(
 order_detail_schema = extend_schema_view(
     get=extend_schema(
         summary="Get order detail by ID",
-        parameters=[
-            OpenApiParameter(name='pk', description='Order ID', required=True, type=int)
-        ],
         responses={
             200: OrderDetailSerializer,
             404: OpenApiResponse(description="Order not found"),
