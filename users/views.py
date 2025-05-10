@@ -16,7 +16,7 @@ from drf_spectacular.utils import extend_schema
 from api_doc.schemas.auth_schemas import login_schema, register_schema, verify_opt_schema, logout_schema
 from utils.response import success_response, fail_response
 from rest_framework.permissions import AllowAny
-
+from api_doc.schemas.user_schemas import user_profile_schema, address_schema, address_detail_schema
 # Register API
 
 @extend_schema(tags=['Auth'])
@@ -183,11 +183,8 @@ class UserDetailView(APIView):
         serializer = UserSerializer(user)
         return Response({"message": "Successfully", "data": serializer.data}, status=status.HTTP_200_OK)
 
-@extend_schema(
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['User']
-)   
+@extend_schema(tags=['User']) 
+@user_profile_schema  
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -208,11 +205,8 @@ class UserProfileView(APIView):
             "data": serializer.data
         })
 
-@extend_schema(
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['Address']
-)
+@extend_schema(tags=['Address'])
+@address_schema
 class AddressView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -236,12 +230,10 @@ class AddressView(APIView):
                 "message": "Successfully",
                 "data": serializer.data
             })
-
-@extend_schema(
-    request=UserSerializer,
-    responses=UserSerializer,
-    tags=['Address']
-)
+    
+    
+@extend_schema(tags=['Address'])
+@address_detail_schema
 class AddressDetailView(APIView):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
 
@@ -255,3 +247,15 @@ class AddressDetailView(APIView):
         else:
             return Response({"error": "Address not found"}, status=status.HTTP_404_NOT_FOUND)
         
+    def patch(self, request, pk):
+        user = request.user
+        address = Address.objects.filter(user=user, id=pk).first()
+
+        if not address:
+            return fail_response("Address not found", status_code=404)
+
+        serializer = AddressSerializer(address, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return success_response(message="Address updated successfully", data=serializer.data)

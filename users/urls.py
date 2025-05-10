@@ -25,11 +25,13 @@ urlpatterns = [
     path("logout/", LogoutView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
-    path('users/', UserListView.as_view()),
+
+    # ---ADMIN---   user list and detail each user
+    path('users/list/', UserListView.as_view()),
     path('users/<int:id>/', UserDetailView.as_view()),
     
     # user profile
-    path('profile/', UserProfileView.as_view()),
+    path('users/profile/', UserProfileView.as_view()),
 
     # verify OTP
     path('verify-otp/', VerifyOTPView.as_view()),
