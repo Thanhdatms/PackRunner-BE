@@ -23,7 +23,7 @@ class OrderCreateView(APIView):
             serializer = OrderSerializer(data=request.data, context={'request': request})
             serializer.is_valid(raise_exception=True)
             serializer.save()
-            return success_response(serializer.data, status_code=201)
+            return success_response(serializer.data)
         except Exception as err:
             return fail_response(error=str(err))
 

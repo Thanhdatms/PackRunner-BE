@@ -12,13 +12,6 @@ class Order(models.Model):
     total_price = models.DecimalField(max_digits=10, decimal_places=2) 
     order_status = models.CharField(max_length=15, choices=OrderStatus.choices)
 
-    receiver_name = models.CharField(max_length=100, null=False, blank=False)
-    address = models.CharField(max_length=100, null=False, blank=False)
-    province = models.CharField(max_length=100, null=False, blank=False)
-    district = models.CharField(max_length=100, null=False, blank=False)
-    ward = models.CharField(max_length=100, null=False, blank=False)
-    latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)  
-    longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
     created = models.DateTimeField(default=now, blank=True, null=True)
 
 class Shipment(models.Model):
@@ -39,7 +32,22 @@ class Shipment(models.Model):
     size = models.CharField(max_length=10, choices=ShipmentSize.choices)
     weight = models.IntegerField()
     note = models.CharField(max_length=200, null=True, blank=True)
-    created = models.DateTimeField(default=now, blank=True, null=True)
+
+    receiver_name = models.CharField(max_length=100, null=False, blank=False)
+    receiver_address = models.CharField(max_length=100, null=False, blank=False)
+    receiver_province = models.CharField(max_length=100, null=False, blank=False)
+    receiver_district = models.CharField(max_length=100, null=False, blank=False)
+    receiver_ward = models.CharField(max_length=100, null=False, blank=False)
+    receiver_latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+    receiver_longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+
+    sender_name = models.CharField(max_length=100, null=False, blank=False)
+    sender_address = models.CharField(max_length=100, null=False, blank=False)
+    sender_province = models.CharField(max_length=100, null=False, blank=False)
+    sender_district = models.CharField(max_length=100, null=False, blank=False)
+    sender_ward = models.CharField(max_length=100, null=False, blank=False)
+    sender_latitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
+    sender_longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
 
 class ShipmentTracking(models.Model):
     shipment = models.ForeignKey(Shipment, on_delete=models.CASCADE, to_field="shipment_code", db_column="shipment_code")

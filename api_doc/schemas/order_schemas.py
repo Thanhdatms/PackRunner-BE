@@ -1,6 +1,7 @@
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema_view, extend_schema
 from orders.serializers import OrderSerializer, OrderDetailSerializer
 
+
 order_create_schema = extend_schema_view(
     post=extend_schema(
         summary="Create a new order",

@@ -5,8 +5,12 @@ from utils.validate import generate_shipment_code
 class ShipmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shipment
-        fields = ['shipment_type', 'size', 'weight', 'note']
-
+        fields = ['shipment_code','shipment_type', 'size', 'weight', 'note',
+                  'receiver_name', 'receiver_address', 'receiver_province',
+                  'receiver_district', 'receiver_ward', 'receiver_latitude',
+                  'sender_name', 'sender_address', 'sender_province',
+                  'sender_district', 'sender_ward', 'receiver_longitude',]
+        read_only_fields = ['shipment_code']
 class PaymentSerializer(serializers.ModelSerializer):
     payment_status = serializers.CharField(read_only=True)
 
@@ -35,11 +39,10 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'total_price', 'order_status',
-            'receiver_name', 'address', 'province', 'district', 'ward',
-            'latitude', 'longitude', 'created',
+            'id', 'total_price', 'order_status', 'created',
             'payments', 'shipments'
         ]
+        read_only_fields = ['id', 'created', 'order_status', 'total_price']
         managed = True
 
     def validate_total_price(self, value):
@@ -51,7 +54,7 @@ class OrderSerializer(serializers.ModelSerializer):
         shipments_data = validated_data.pop('shipments', []) 
         payments_data = validated_data.pop('payments', [])
         request = self.context.get('request')
-        order = Order.objects.create(sender=request.user, **validated_data)
+        order = Order.objects.create(total_price = 100,sender=request.user, **validated_data)
         order.order_status = 'Ordered'
         shipment_code = generate_shipment_code(f"SHIP-{order.id}")
 
@@ -73,9 +76,7 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'total_price', 'order_status',
-            'receiver_name', 'address', 'province', 'district', 'ward',
-            'latitude', 'longitude', 'created',
+            'id', 'total_price', 'order_status','created',
             'shipments', 'payments'  # Updated field names
         ]
 
