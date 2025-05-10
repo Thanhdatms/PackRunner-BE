@@ -27,6 +27,7 @@ order_detail_schema = extend_schema_view(
         }
     )
 )
+
 order_list_schema = extend_schema_view(
     get=extend_schema(
         summary="Get all orders",
