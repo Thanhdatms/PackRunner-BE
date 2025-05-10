@@ -34,6 +34,7 @@ class Shipment(models.Model):
     note = models.CharField(max_length=200, null=True, blank=True)
 
     receiver_name = models.CharField(max_length=100, null=False, blank=False)
+    receiver_phone_number = models.CharField(max_length=15, null=True, blank=False)
     receiver_address = models.CharField(max_length=100, null=False, blank=False)
     receiver_province = models.CharField(max_length=100, null=False, blank=False)
     receiver_district = models.CharField(max_length=100, null=False, blank=False)
@@ -42,6 +43,7 @@ class Shipment(models.Model):
     receiver_longitude = models.DecimalField(max_digits=10, decimal_places=7, blank=True, null=True)
 
     sender_name = models.CharField(max_length=100, null=False, blank=False)
+    sender_phone_number = models.CharField(max_length=15, null=True, blank=False)
     sender_address = models.CharField(max_length=100, null=False, blank=False)
     sender_province = models.CharField(max_length=100, null=False, blank=False)
     sender_district = models.CharField(max_length=100, null=False, blank=False)
