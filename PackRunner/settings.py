@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-dqq3*(=h1a42xkdj%*8&#@m_=#)gx))jagx0a@)x#==o5e*a!n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '10.0.2.2']
+ALLOWED_HOSTS = ['*']
 
 # ------------ OTP-----------
 MAX_OTP_TRY = 3
