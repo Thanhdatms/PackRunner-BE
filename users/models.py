@@ -33,10 +33,11 @@ class User(AbstractUser):
     REQUIRED_FIELDS = []
 
     def generate_otp(self):
-        self.otp = str(random.randint(1000, 9999))
+        # self.otp = str(random.randint(1000, 9999))
+        self.otp = 1111
         self.otp_expiry = now() + timedelta(minutes=2)
         self.max_otp_try = settings.MAX_OTP_TRY  # Max attempts reset on OTP generation
-        self.save()
+        self.save()    
         return self.otp
 
 class Address(models.Model):
