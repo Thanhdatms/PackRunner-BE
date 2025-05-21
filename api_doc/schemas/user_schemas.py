@@ -1,5 +1,5 @@
 from drf_spectacular.utils import OpenApiParameter, OpenApiResponse, extend_schema_view, extend_schema
-from users.serializers import User, UserSerializer, AddressSerializer
+from users.serializers import User, UserSerializer, AddressSerializer, FaceRegisterSerializer
 from rest_framework import serializers
 
 class UserProfileRequestSerializer(serializers.Serializer):
@@ -69,3 +69,14 @@ address_detail_schema = extend_schema_view(
     )
 )
 
+face_register_schema = extend_schema_view(
+    post=extend_schema(
+        summary="Register face",
+        request= FaceRegisterSerializer,
+        responses={
+            201: OpenApiResponse(description="Face registered successfully"),
+            400: OpenApiResponse(description="Validation failed"),
+            500: OpenApiResponse(description="Internal server error")
+        }
+    )
+)

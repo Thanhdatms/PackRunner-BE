@@ -51,10 +51,11 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
-        fields = ['id', 'user', 'address_line', 'city', 'district', 'street_name', 'latitude', 'longitude', 'is_default']
+        fields = ['id', 'user', 'address_line', 'address', 'ward', 'district', 'province', 'latitude', 'longitude', 'is_default']
         extra_kwargs = {
             'user': {'read_only': True}
         }
+        read_only_fields = ['user', 'address_line']
 
     def create(self, validated_data):  
         request = self.context.get('request')
@@ -62,10 +63,13 @@ class AddressSerializer(serializers.ModelSerializer):
         if request and hasattr(request, 'user'):
             user = request.user
             validated_data['user'] = user
-
+            address_line = f"{validated_data.get('address', '')}, {validated_data.get('ward', '')}, {validated_data.get('district', '')}, {validated_data.get('province', '')}"
+            validated_data['address_line'] = address_line
+        
             if validated_data.get('is_default', True):
                 Address.objects.filter(user=user, is_default=True).update(is_default=False)
 
         return super().create(validated_data)
 
-
+class FaceRegisterSerializer(serializers.Serializer):
+    face_file = serializers.ImageField()

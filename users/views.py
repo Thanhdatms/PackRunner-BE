@@ -9,16 +9,18 @@ from django.shortcuts import get_object_or_404
 from django.utils.timezone import now, timedelta
 from .models import User, Address
 from django.conf import settings
-from .serializers import UserSerializer, MyTokenObtainPairSerializer, AddressSerializer
+from .serializers import UserSerializer, MyTokenObtainPairSerializer, AddressSerializer, FaceRegisterSerializer
 from .permissions import *
 from .otpverify import sendSmSOTP
 from drf_spectacular.utils import extend_schema
 from api_doc.schemas.auth_schemas import login_schema, register_schema, verify_opt_schema, logout_schema
 from utils.response import success_response, fail_response
 from rest_framework.permissions import AllowAny
-from api_doc.schemas.user_schemas import user_profile_schema, address_schema, address_detail_schema
+from api_doc.schemas.user_schemas import user_profile_schema, address_schema, address_detail_schema, face_register_schema
 from rest_framework import serializers
 from utils.response import fail_response, success_response
+from rest_framework.parsers import MultiPartParser, FormParser
+
 # Register API
 
 @extend_schema(tags=['Auth'])
@@ -289,5 +291,42 @@ class AddressDetailView(APIView):
             serializer.save()
 
             return success_response(message="Address updated successfully", data=serializer.data)
+        except Exception as e:
+            return fail_response(str(e), status_code=400)
+
+@extend_schema(tags=['RegisterFace'])
+@face_register_schema
+class RegisterFaceView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+    serializer_class = FaceRegisterSerializer
+    
+    def post(self, request):
+        try:
+            user = request.user
+            face_file = request.FILES.get('face_file')
+
+            if not face_file:
+                return fail_response("No face file provided", status_code=400)
+            # delete old face_url if exists
+            if user.face_url:
+                user.face_url.delete(save=False)
+            
+            user.face_url = face_file
+            user.save()
+            face_url = request.build_absolute_uri(user.face_url.url)
+            
+            return success_response(message="Face URL registered successfully", data={"face_url": face_url})
+        except Exception as e:
+            return fail_response(str(e), status_code=400)
+        
+    def get(self, request):
+        try:
+            user = request.user
+            if user.face_url:
+                face_url = request.build_absolute_uri(user.face_url.url)
+                return success_response(message="Face URL retrieved successfully", data={"face_url": face_url})
+            else:
+                return fail_response("No face URL found", status_code=404)
         except Exception as e:
             return fail_response(str(e), status_code=400)

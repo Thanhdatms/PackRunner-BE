@@ -32,6 +32,12 @@ ALLOWED_HOSTS = ['*']
 # ------------ OTP-----------
 MAX_OTP_TRY = 3
 
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+DEBUG = True
+
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -90,7 +96,7 @@ DATABASES = {
         'NAME': 'packrunner-db',
         'USER': 'postgres',
         'PASSWORD': 'root',
-        'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': '5432'
     }
 }
@@ -145,6 +151,7 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
@@ -166,4 +173,14 @@ SPECTACULAR_SETTINGS = {
     'SERVE_INCLUDE_SCHEMA': False,
     "SCHEMA_PATH_PREFIX_TRIM": None,
     # OTHER SETTINGS
+    "PARSER_WHITELIST": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
+    "RENDERER_WHITELIST": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.MultiPartRenderer",
+    ],
+    "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest", # default
+
 }
