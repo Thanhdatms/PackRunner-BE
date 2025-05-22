@@ -25,6 +25,7 @@ class OrderCreateView(APIView):
             serializer.save()
             return success_response(serializer.data)
         except Exception as err:
+            print(err)
             return fail_response(error=str(err))
 
 @extend_schema(tags=['Order'])

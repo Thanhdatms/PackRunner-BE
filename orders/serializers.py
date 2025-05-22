@@ -102,19 +102,23 @@ class OrderSerializer(serializers.ModelSerializer):
 
         distance = self.calculate_distance(origin, destination)
 
-        total_price += distance * 10000  # Assuming a rate of 10000 per km
+        total_price += distance * 10000  
 
         return total_price
 
     def calculate_distance(self, origin, destination):
-        url_template = os.environ.get('GOOGLE_MAPS_ESTIMATE_URL')
-        api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
-        url = url_template.format(destinations=destination, origins=origin, key=api_key)
-        data = requests.get(url).json()
-
-        distance_meters = data['rows'][0]['elements'][0]['distance']['value']
-        return distance_meters / 1000  # Convert to kilometers 
-        
+        try:
+            url_template = os.environ.get('GOOGLE_MAPS_ESTIMATE_URL')
+            api_key = os.environ.get('GOOGLE_MAPS_API_KEY')
+            url = url_template.format(destinations=destination, origins=origin, key=api_key)
+            data = requests.get(url).json()
+            print(data)
+            distance_meters = data['rows'][0]['elements'][0]['distance']['value']
+            return distance_meters / 1000  # Convert to kilometers 
+            
+        except Exception as e:
+            print(f"Error calculating distance: {e}")
+            return 0
 class OrderStatusUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
