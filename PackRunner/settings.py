@@ -96,7 +96,7 @@ DATABASES = {
         'NAME': 'packrunner-db',
         'USER': 'postgres',
         'PASSWORD': 'root',
-        'HOST': 'db',
+        'HOST': 'localhost',
         'PORT': '5432'
     }
 }

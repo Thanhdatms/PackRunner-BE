@@ -63,10 +63,14 @@ class Payments(models.Model):
         COMPLETED = 'Completed'
         FAILED = 'Failed'
 
+    class PaymentMethod(models.TextChoices):
+        COD = 'cod'
+        VIETQR = 'vietqr'
+
     order = models.ForeignKey(Order, related_name='payments', on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_status = models.CharField(max_length=15, choices=PaymentStatus.choices)
-    payment_method = models.CharField(max_length=50)  # e.g., Credit Card, PayPal
+    payment_method = models.CharField(max_length=15, choices=PaymentMethod.choices)  # e.g., Credit Card, PayPal
     created = models.DateTimeField(default=now, blank=True, null=True)
 
 class Transaction(models.Model):
