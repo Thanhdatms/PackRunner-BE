@@ -31,7 +31,7 @@ class OrderCreateView(APIView):
 @extend_schema(tags=['Order'])
 @order_estimate_shipping_cost_schema
 class EstimateShippingCostView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         try:
