@@ -8,9 +8,9 @@ from .serializers import OrderSerializer, ShipmentSerializer, OrderStatusUpdateS
 from .models import Order, Shipment
 from utils.response import success_response, fail_response
 from users.permissions import IsOwnerOrReadOnly
-
+from utils.order import calculate_total_price
 from drf_spectacular.utils import extend_schema
-from api_doc.schemas.order_schemas import order_create_schema, order_detail_schema, order_list_schema
+from api_doc.schemas.order_schemas import order_create_schema, order_detail_schema, order_list_schema, order_estimate_shipping_cost_schema
 # Create your views here.
 
 @extend_schema(tags=['Order'])
@@ -27,6 +27,20 @@ class OrderCreateView(APIView):
         except Exception as err:
             print(err)
             return fail_response(error=str(err))
+
+@extend_schema(tags=['Order'])
+@order_estimate_shipping_cost_schema
+class EstimateShippingCostView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        try:
+            shipment_data = request.data
+            total_amount = calculate_total_price(shipment_data)
+            return success_response({'total_amount': total_amount})
+
+        except Exception as err:
+            return fail_response(error=str(err), status_code=500)
 
 @extend_schema(tags=['Order'])
 @order_detail_schema
