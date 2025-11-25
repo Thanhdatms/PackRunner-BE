@@ -17,11 +17,28 @@ Including another URLconf
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import RegisterView
-from .views import LoginView, LogoutView
-
+from .views import LoginView, LogoutView, UserListView, UserDetailView, UserProfileView, VerifyOTPView, AddressView, AddressDetailView, RegisterFaceView
+from django.conf import settings
+from django.conf.urls.static import static
 urlpatterns = [
     path('register/', RegisterView.as_view()),
+    path('register/face/', RegisterFaceView.as_view()),
     path("login/", LoginView.as_view()),
     path("logout/", LogoutView.as_view()),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+
+
+    # ---ADMIN---   user list and detail each user
+    path('users/list/', UserListView.as_view()),
+    path('users/<int:id>/', UserDetailView.as_view()),
+    
+    # user profile
+    path('users/profile/', UserProfileView.as_view()),
+
+    # verify OTP
+    path('verify-otp/', VerifyOTPView.as_view()),
+
+    # address
+    path('user/address/', AddressView.as_view()),
+    path('user/address/<int:pk>/', AddressDetailView.as_view()),
 ]

@@ -27,7 +27,15 @@ SECRET_KEY = 'django-insecure-dqq3*(=h1a42xkdj%*8&#@m_=#)gx))jagx0a@)x#==o5e*a!n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+
+# ------------ OTP-----------
+MAX_OTP_TRY = 3
+
+# Media files
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+DEBUG = True
 
 
 # Application definition
@@ -43,6 +51,9 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'rest_framework_simplejwt.token_blacklist',
     'users',
+    'orders',
+    'location',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -85,7 +96,7 @@ DATABASES = {
         'NAME': 'packrunner-db',
         'USER': 'postgres',
         'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432'
     }
 }
@@ -137,11 +148,14 @@ AUTH_USER_MODEL = 'users.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    "EXCEPTION_HANDLER": "rest_framework.views.exception_handler",
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30), 
+    "ACCESS_TOKEN_LIFETIME": timedelta(days=30), 
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True, 
     "BLACKLIST_AFTER_ROTATION": True, # Auto backlisted refeshtoken after change
@@ -149,4 +163,24 @@ SIMPLE_JWT = {
     'UPDATE_LAST_LOGIN': True,
     "AUTH_HEADER_TYPES": ("Bearer",),
     
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'PackRunner API Documentation',
+    'DESCRIPTION': ' API documentation for PackRunner project',
+    'VERSION': '1.0.0',
+    'CONTACT_URL': 'dangthanhdatuit@gmail.com',
+    'SERVE_INCLUDE_SCHEMA': False,
+    "SCHEMA_PATH_PREFIX_TRIM": None,
+    # OTHER SETTINGS
+    "PARSER_WHITELIST": [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.MultiPartParser",
+    ],
+    "RENDERER_WHITELIST": [
+        "rest_framework.renderers.JSONRenderer",
+        "rest_framework.renderers.MultiPartRenderer",
+    ],
+    "SWAGGER_UI_DIST": "https://cdn.jsdelivr.net/npm/swagger-ui-dist@latest", # default
+
 }
